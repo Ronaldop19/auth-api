@@ -4,6 +4,9 @@ import com.ronaldoamorim.authapi.domain.*;
 import com.ronaldoamorim.authapi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -21,6 +24,7 @@ public class AuthService implements UserDetailsService {
     private final UserRepository userRepository;
     private final TokenService tokenService;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
 
     @Override
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
@@ -45,14 +49,12 @@ public class AuthService implements UserDetailsService {
     }
 
     public String login(LoginDTO loginDTO) {
-
-        User user = userRepository.findByLogin(loginDTO.login())
-                .orElse(null);
-
-        if (user == null || !passwordEncoder.matches(loginDTO.password(), user.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid Credentials");
+        var usernamePassword = new UsernamePasswordAuthenticationToken(loginDTO.login(), loginDTO.password());
+        try {
+            var auth = authenticationManager.authenticate(usernamePassword);
+            return tokenService.generateToken((User) auth.getPrincipal());
+        } catch (AuthenticationException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
         }
-
-        return tokenService.generateToken(user);
     }
 }
