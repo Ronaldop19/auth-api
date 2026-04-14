@@ -2,6 +2,7 @@ package com.ronaldoamorim.authapi.service;
 
 import com.ronaldoamorim.authapi.domain.*;
 import com.ronaldoamorim.authapi.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -13,18 +14,13 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.Optional;
 
 @Service
-public class AuthorizationService implements UserDetailsService {
+@RequiredArgsConstructor
+public class AuthService implements UserDetailsService {
 
 
     private final UserRepository userRepository;
     private final TokenService tokenService;
     private final PasswordEncoder passwordEncoder;
-
-    public AuthorizationService(UserRepository userRepository, TokenService tokenService, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.tokenService = tokenService;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     @Override
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
